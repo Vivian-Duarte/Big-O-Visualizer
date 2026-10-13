@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <title>Ordenação, passo a passo</title>
+    <meta
+      name="description"
+      content="Visualizador de algoritmos de ordenação: Bubble, Selection, Insertion, Merge e Quick Sort."
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <!-- Ícones reutilizáveis -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"/></symbol>
+      <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></symbol>
+      <symbol id="i-replay" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v4.5h4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-step" viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M3 7h3.5c2 0 3.2 1 4.3 2.6l2.4 3.8c1.1 1.6 2.3 2.6 4.3 2.6H21M3 17h3.5c2 0 3.2-1 4.3-2.6M13.2 10.6c1.1-1.6 2.3-2.6 4.3-2.6H21M18 5l3 3-3 3M18 13l3 3-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-compare" viewBox="0 0 24 24"><path d="M9 4v16M15 4v16M5 8l4-4 4 4M11 16l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    </svg>
+
+    <div class="app">
+      <header class="intro">
+        <h1>Ordenação, passo a passo</h1>
+        <p>
+          Veja como cada algoritmo reorganiza as barras. Compare, troque e
+          acompanhe quantas operações cada um precisa.
+        </p>
+      </header>
+
+      <main class="stage-area">
+        <div
+          id="bars"
+          class="stage"
+          role="img"
+          aria-label="Barras de alturas diferentes sendo ordenadas"
+        ></div>
+
+        <ul class="legend" aria-label="Legenda de cores">
+          <li><span class="swatch swatch-compare"></span>Comparando</li>
+          <li><span class="swatch swatch-swap"></span>Trocando ou escrevendo</li>
+          <li><span class="swatch swatch-pivot"></span>Pivô</li>
+          <li><span class="swatch swatch-sorted"></span>Posição final</li>
+        </ul>
+
+        <div class="readout">
+          <p class="figure figure-compare">
+            <svg class="figure-icon" aria-hidden="true"><use href="#i-compare" /></svg>
+            <span id="comparisons" class="figure-number">0</span>
+            <span class="figure-label">Comparações</span>
+          </p>
+          <p class="figure figure-swap">
+            <svg class="figure-icon" aria-hidden="true"><use href="#i-swap" /></svg>
+            <span id="moves" class="figure-number">0</span>
+            <span class="figure-label">Trocas ou escritas</span>
+          </p>
+        </div>
+
+        <p id="status" class="status" aria-live="polite">
+          <svg class="status-icon" aria-hidden="true"><use href="#i-check" /></svg>
+          <span id="status-text"></span>
+        </p>
+      </main>
+
+      <aside class="panel">
+        <section class="group card" aria-labelledby="controls-title">
+          <h2 id="controls-title">Controles</h2>
+
+          <div class="field">
+            <label for="algorithm">Algoritmo</label>
+            <div class="select-wrap">
+              <select id="algorithm"></select>
+              <svg class="select-chevron" aria-hidden="true"><use href="#i-chevron" /></svg>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="size">
+              Quantidade de barras
+              <output id="size-out" class="pill" for="size"></output>
+            </label>
+            <input type="range" id="size" min="10" max="100" value="40" />
+          </div>
+
+          <div class="field">
+            <label for="speed">
+              Velocidade
+              <output id="speed-out" class="pill" for="speed"></output>
+            </label>
+            <input type="range" id="speed" min="1" max="100" value="60" />
+          </div>
+
+          <div class="buttons">
+            <button id="play" class="btn btn-primary" type="button"></button>
+            <button id="step" class="btn" type="button">
+              <svg aria-hidden="true"><use href="#i-step" /></svg>Um passo
+            </button>
+            <button id="restart" class="btn" type="button">
+              <svg aria-hidden="true"><use href="#i-replay" /></svg>Reiniciar
+            </button>
+            <button id="shuffle" class="btn btn-wide" type="button">
+              <svg aria-hidden="true"><use href="#i-shuffle" /></svg>Embaralhar
+            </button>
+          </div>
+          <p class="hint">
+            Reiniciar volta à mesma sequência, para comparar algoritmos com os
+            mesmos dados. Embaralhar cria uma sequência nova.
+          </p>
+        </section>
+
+        <section class="group card" aria-labelledby="info-name">
+          <h2 id="info-name"></h2>
+          <p id="info-description" class="description"></p>
+
+          <dl class="facts">
+            <div>
+              <dt>Melhor caso</dt>
+              <dd id="info-best"></dd>
+            </div>
+            <div>
+              <dt>Caso médio</dt>
+              <dd id="info-average"></dd>
+            </div>
+            <div>
+              <dt>Pior caso</dt>
+              <dd id="info-worst"></dd>
+            </div>
+            <div>
+              <dt>Memória extra</dt>
+              <dd id="info-space"></dd>
+            </div>
+            <div>
+              <dt>Estável</dt>
+              <dd id="info-stable"></dd>
+            </div>
+          </dl>
+        </section>
+      </aside>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
